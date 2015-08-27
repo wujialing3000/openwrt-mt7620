@@ -7,15 +7,22 @@
 	model = "Ralink MT7620a + MT7610e evaluation board";
 
 	palmbus@10000000 {
+		gpio0: gpio@600 {
+                        status = "okay";
+                };
+                gpio3: gpio@688 {
+                        status = "okay";
+                };
+
 		spi@b00 {
 			status = "okay";
 
 			m25p80@0 {
 				#address-cells = <1>;
 				#size-cells = <1>;
-				compatible = "en25q64";
+				compatible = "w25q128";
 				reg = <0 0>;
-				linux,modalias = "m25p80", "en25q64";
+				linux,modalias = "m25p80", "w25q128";
 				spi-max-frequency = <10000000>;
 
 				partition@0 {
@@ -38,7 +45,7 @@
 
 				partition@50000 {
 					label = "firmware";
-					reg = <0x50000 0x7b0000>;
+					reg = <0x50000 0xfb0000>;
 				};
 			};
 		};
@@ -47,11 +54,19 @@
 	pinctrl {
 		state_default: pinctrl0 {
 			gpio {
-				ralink,group = "i2c", "uartf";
+				ralink,group = "i2c", "uartf","wled";
 				ralink,function = "gpio";
 			};
 		};
 	};
+
+	ehci@101c0000 {
+                status = "okay";
+        };
+
+        ohci@101c1000 {
+                status = "okay";
+        };
 
 	ethernet@10100000 {
 		status = "okay";
@@ -73,21 +88,30 @@
 	pcie@10140000 {
 		status = "okay";
 	};
-
+	
 	gpio-keys-polled {
-		compatible = "gpio-keys";
-		#address-cells = <1>;
-		#size-cells = <0>;
-		poll-interval = <20>;
-		s2 {
-			label = "S2";
-			gpios = <&gpio0 1 1>;
-			linux,code = <0x100>;
-		};
-		s3 {
-			label = "S3";
-			gpios = <&gpio0 2 1>;
-			linux,code = <0x101>;
-		};
-	};
+                compatible = "gpio-keys","gpio-keys-polled";
+                #address-cells = <1>;
+                #size-cells = <0>;
+                poll-interval = <20>;
+                wps {
+                        label = "wps";
+                        gpios = <&gpio0 12 1>;
+                        linux,code = <0x100>;
+                        linux,input-type = <0x05>;
+                };
+                reset {
+                        label = "reset";
+                        gpios = <&gpio0 13 1>;
+                        linux,code = <0x101>;
+                        linux,input-type = <0x05>;
+                };
+        };
+        gpio-leds {
+                compatible = "gpio-leds";
+                air {
+                        label = "microwrt:blue:air";
+                        gpios = <&gpio3 0 1>;
+                };
+        };
 };
